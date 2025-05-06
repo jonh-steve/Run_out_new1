@@ -1,0 +1,29 @@
+# Sử dụng Node.js 18 với Alpine Linux cho nhẹ và bảo mật
+FROM node:18-alpine
+
+# Tạo thư mục làm việc
+WORKDIR /app
+
+# Sao chép package.json và package-lock.json trước để tận dụng Docker caching
+COPY package*.json ./
+
+# Cài đặt dependencies
+RUN npm ci --only=production
+
+# Sao chép source code của ứng dụng
+COPY . .
+
+# Tạo thư mục logs
+RUN mkdir -p logs
+
+# Set node user cho bảo mật tốt hơn (không chạy ứng dụng với quyền root)
+USER node
+
+# Expose port
+EXPOSE 5000
+
+# Biến môi trường
+ENV NODE_ENV=production
+
+# Khởi chạy ứng dụng
+CMD ["node", "src/server.js"] 

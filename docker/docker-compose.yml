@@ -1,0 +1,232 @@
+version: '3.8'
+
+services:
+  # MongoDB Service
+  mongodb:
+    image: mongo:6
+    container_name: runout_mongodb_prod
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: runout_biliard
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init/:/docker-entrypoint-initdb.d/
+      - ./mongodb_backup:/backup
+    networks:
+      - runout_network
+    # Không expose port ra ngoài trong môi trường production
+    ports:
+      - "127.0.0.1:27017:27017"
+    command: ["--auth", "--wiredTigerCacheSizeGB", "1"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+  
+  # MongoDB Backup Service
+  mongo-backup:
+    image: mongo:6
+    container_name: runout_mongodb_backup
+    restart: always
+    depends_on:
+      - mongodb
+    volumes:
+      - ./mongodb_backup:/backup
+      - ./scripts:/scripts
+    entrypoint: ["sh", "/scripts/mongodb-backup.sh"]
+    networks:
+      - runout_network
+    environment:
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_DATABASE=runout_biliard
+      - BACKUP_CRON="0 2 * * *" # Chạy lúc 2 giờ sáng hàng ngày
+
+  # Backend Service
+  backend:
+    image: ${DOCKER_HUB_USERNAME}/runout-biliard-server:latest
+    container_name: runout_backend_prod
+    restart: always
+    depends_on:
+      - mongodb
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGODB_URI=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/runout_biliard?authSource=admin
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - APP_NAME=RunOut-Biliard
+      - SIGNATURE=${SIGNATURE}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      - backend_logs:/app/logs
+    networks:
+      - runout_network
+    # Sử dụng Nginx làm reverse proxy, chỉ expose trong internal network
+    expose:
+      - "5000"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: runout_nginx
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/logs:/var/log/nginx
+      - ./nginx/www:/var/www/html
+    networks:
+      - runout_network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # Prometheus for monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: runout_prometheus
+    restart: always
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    networks:
+      - runout_network
+    expose:
+      - "9090"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: runout_grafana
+    restart: always
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - runout_network
+    expose:
+      - "3000"
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # Node Exporter for system metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: runout_node_exporter
+    restart: always
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)'
+    networks:
+      - runout_network
+    expose:
+      - "9100"
+
+  # Watchtower for automatic container updates
+  watchtower:
+    image: containrrr/watchtower
+    container_name: runout_watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 86400 --cleanup
+    environment:
+      - WATCHTOWER_NOTIFICATIONS=slack
+      - WATCHTOWER_NOTIFICATION_SLACK_HOOK_URL=${SLACK_WEBHOOK_URL}
+      - WATCHTOWER_NOTIFICATION_SLACK_IDENTIFIER=watchtower
+      - WATCHTOWER_NOTIFICATION_SLACK_CHANNEL=${SLACK_CHANNEL:-deployments}
+    networks:
+      - runout_network
+
+networks:
+  runout_network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  backend_logs:
+  prometheus_data:
+  grafana_data:

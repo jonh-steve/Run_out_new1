@@ -1,0 +1,34 @@
+# Sử dụng multi-stage build để tối ưu image size
+
+# Stage 1: Build stage
+FROM node:18-alpine AS build
+
+# Tạo thư mục làm việc
+WORKDIR /app
+
+# Sao chép package.json và package-lock.json
+COPY package*.json ./
+
+# Cài đặt dependencies
+RUN npm ci
+
+# Sao chép source code của ứng dụng
+COPY . .
+
+# Build ứng dụng React
+RUN npm run build
+
+# Stage 2: Production stage
+FROM nginx:alpine
+
+# Sao chép build files từ build stage vào thư mục root của Nginx
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Sao chép cấu hình Nginx tùy chỉnh (nếu có)
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Khởi chạy Nginx
+CMD ["nginx", "-g", "daemon off;"]

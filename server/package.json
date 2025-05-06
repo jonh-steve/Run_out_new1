@@ -1,0 +1,67 @@
+{
+    "name": "runout-biliard-server",
+    "version": "1.0.0",
+    "description": "Backend server cho hệ thống RunOut-Biliard",
+    "main": "src/server.js",
+    "scripts": {
+        "start": "node src/server.js",
+        "dev": "nodemon src/server.js",
+        "test": "jest --coverage",
+        "test:watch": "jest --watch",
+        "lint": "eslint --ext .js src/",
+        "lint:fix": "eslint --ext .js src/ --fix",
+        "format": "prettier --write \"src/**/*.js\"",
+        "migrate": "node src/migrations migrate",
+        "migrate:rollback": "node src/migrations rollback",
+        "seed": "node src/seeds/index.js",
+        "prepare": "husky install"
+    },
+    "author": "Steve",
+    "license": "UNLICENSED",
+    "private": true,
+    "dependencies": {
+        "bcrypt": "^5.1.1",
+        "compression": "^1.7.4",
+        "cookie-parser": "^1.4.7",
+        "cors": "^2.8.5",
+        "csurf": "^1.10.0",
+        "dotenv": "^16.3.1",
+        "express": "^4.21.2",
+        "express-mongo-sanitize": "^2.2.0",
+        "express-rate-limit": "^7.5.0",
+        "handlebars": "^4.7.8",
+        "helmet": "^7.1.0",
+        "hpp": "^0.2.3",
+        "joi": "^17.11.0",
+        "jsonwebtoken": "^9.0.2",
+        "mongodb-memory-server": "^10.1.4",
+        "mongoose": "^8.0.3",
+        "morgan": "^1.10.0",
+        "nodemailer": "^7.0.2",
+        "redis": "^5.0.1",
+        "winston": "^3.11.0",
+        "xss-clean": "^0.1.4"
+    },
+    "devDependencies": {
+        "eslint": "^8.55.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-jest": "^27.6.0",
+        "eslint-plugin-node": "^11.1.0",
+        "eslint-plugin-prettier": "^5.0.1",
+        "husky": "^8.0.3",
+        "jest": "^29.7.0",
+        "lint-staged": "^15.2.0",
+        "nodemon": "^3.0.2",
+        "prettier": "^3.1.1",
+        "supertest": "^6.3.3"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "lint-staged": {
+        "*.js": [
+            "eslint --fix",
+            "prettier --write"
+        ]
+    }
+}

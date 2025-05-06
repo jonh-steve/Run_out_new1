@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  # MongoDB Service
+  mongodb:
+    image: mongo:6
+    container_name: runout_mongodb_prod
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - runout_network
+    # Không expose port ra ngoài trong môi trường production
+    ports:
+      - "127.0.0.1:27017:27017"
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Backend Service
+  backend:
+    image: ${DOCKER_HUB_USERNAME}/runout-biliard-server:latest
+    container_name: runout_backend_prod
+    restart: always
+    depends_on:
+      - mongodb
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGODB_URI=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/runout_biliard?authSource=admin
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - APP_NAME=RunOut-Biliard
+      - SIGNATURE=${SIGNATURE}
+    volumes:
+      - backend_logs:/app/logs
+    networks:
+      - runout_network
+    # Sử dụng Nginx làm reverse proxy, chỉ expose trong internal network
+    expose:
+      - "5000"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: runout_nginx
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/logs:/var/log/nginx
+    networks:
+      - runout_network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  runout_network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  backend_logs:
+    driver: local
+    driver_opts:
+      type: none
+      device: /opt/runout-biliard/logs
+      o: bind
+  nginx_logs:
+    driver: local
+    driver_opts:
+      type: none
+      device: /opt/runout-biliard/nginx/logs
+      o: bind
+  nginx_ssl:
+    driver: local
+    driver_opts:
+      type: none
+      device: /opt/runout-biliard/nginx/ssl
+      o: bind
+  # Chú ý: Đảm bảo rằng các thư mục /opt/runout-biliard/logs, /opt/runout-biliard/nginx/logs và /opt/runout-biliard/nginx/ssl đã tồn tại trên server trước khi chạy docker-compose.
+  # Nếu chưa tồn tại, bạn có thể tạo chúng bằng lệnh sau:
+  # mkdir -p /opt/runout-biliard/logs /opt/runout-biliard/nginx/logs /opt/runout-biliard/nginx/ssl
+  # Hoặc bạn có thể thay đổi đường dẫn trong driver_opts để phù hợp với cấu trúc thư mục của bạn.
+  # Nếu bạn muốn sử dụng volume mặc định của Docker, bạn có thể bỏ qua phần này và chỉ cần định nghĩa mongodb_data.
+  # Tuy nhiên, việc sử dụng volume bind mount như trên sẽ giúp bạn dễ dàng truy cập và quản lý các file log và ssl certificate từ bên ngoài container.

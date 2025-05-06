@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xác Thực Tài Khoản</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      border-bottom: 2px solid #f0f0f0;
+    }
+    .logo {
+      max-width: 180px;
+      height: auto;
+    }
+    .content {
+      padding: 20px 0;
+    }
+    .button {
+      display: inline-block;
+      padding: 12px 30px;
+      background-color: #3498db;
+      color: #ffffff !important;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .button:hover {
+      background-color: #2980b9;
+    }
+    .footer {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid #f0f0f0;
+      font-size: 12px;
+      color: #777;
+    }
+    .note {
+      font-size: 14px;
+      color: #777;
+      font-style: italic;
+    }
+    @media only screen and (max-width: 600px) {
+      .container {
+        width: 100%;
+        padding: 10px;
+      }
+      .content {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="{{logoUrl}}" alt="{{appName}}" class="logo">
+      <h1>Xác Thực Tài Khoản</h1>
+    </div>
+    <div class="content">
+      <p>Xin chào <strong>{{name}}</strong>,</p>
+      
+      <p>Cảm ơn bạn đã đăng ký tài khoản tại <strong>{{appName}}</strong>. Để hoàn tất quá trình đăng ký, vui lòng xác nhận địa chỉ email của bạn bằng cách nhấp vào nút bên dưới:</p>
+      
+      <div style="text-align: center;">
+        <a href="{{verifyURL}}" class="button">Xác Nhận Email</a>
+      </div>
+      
+      <p>Hoặc, bạn có thể sao chép và dán đường dẫn dưới đây vào trình duyệt của mình:</p>
+      
+      <p style="word-break: break-all; background-color: #f5f5f5; padding: 10px; border-radius: 3px;">
+        {{verifyURL}}
+      </p>
+      
+      <p class="note">* Đường dẫn này sẽ hết hạn sau 24 giờ.</p>
+      
+      <p>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này hoặc liên hệ với chúng tôi nếu bạn có thắc mắc.</p>
+      
+      <p>Trân trọng,<br>Đội ngũ {{appName}}</p>
+    </div>
+    <div class="footer">
+      <p>&copy; {{year}} {{appName}}. Tất cả các quyền thuộc về {{signature}}.</p>
+      <p>
+        <a href="#" style="color: #777; text-decoration: none; margin: 0 5px;">Chính sách bảo mật</a> |
+        <a href="#" style="color: #777; text-decoration: none; margin: 0 5px;">Điều khoản sử dụng</a> |
+        <a href="#" style="color: #777; text-decoration: none; margin: 0 5px;">Liên hệ</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+{{! This template is used for sending account verification emails. }}
+{{! It includes a logo, a greeting, a verification button, and a footer with links. }}
+{{! The template is styled to be responsive and visually appealing. }}
+{{! The placeholders will be replaced with actual values when the email is sent. }}
+{{! The template uses Handlebars syntax for dynamic content rendering. }}
+{{! Ensure to replace {{logoUrl}}, {{appName}}, {{name}}, {{verifyURL}}, {{year}}, and {{signature}} with actual values. }}
+{{! The button color and hover effect can be customized as needed. }}
+{{! The note about the expiration of the verification link is included for user awareness. }}
+{{! The footer includes links to privacy policy, terms of use, and contact information. }}
+{{! The email is designed to be user-friendly and easy to read on both desktop and mobile devices. }}
+{{! Make sure to test the email template in different email clients for compatibility. }}
+{{! This template is part of a larger email service system for user account management. }}
+{{! The email service should handle sending the email with the appropriate SMTP settings. }}
+{{! Ensure to validate the email addresses before sending to avoid bounces. }}
+{{! Consider adding tracking parameters to the verification link for analytics purposes. }}
+{{! The template can be further enhanced with additional styling or branding elements as needed. }}
+{{! Always keep user experience in mind when designing email templates. }}
+{{! Regularly review and update the template to ensure it meets current design standards. }}
+{{! This template is a crucial part of the user onboarding process for the application. }}
+{{! Properly test the email template with various email clients to ensure consistent rendering. }}
+{{! Consider A/B testing different subject lines or content to improve engagement rates. }}
+{{! Monitor the performance of the verification emails to optimize future campaigns. }}
+{{! This template is a key component of the user verification process in the application. }}
+{{! Ensure that all links are functional and lead to the correct destinations. }}
+{{! The design should align with the overall branding of the application for consistency. }}
