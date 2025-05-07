@@ -1,15 +1,24 @@
-// client/src/components/feature/Product/ProductCard.js
+// src/components/feature/Product/ProductCard.js
+// Component hiển thị thông tin sản phẩm trong trang danh sách sản phẩm
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Card } from '../../../components/common';
+import Button from '../../../components/common/Button/Button';
+import Card from '../../../components/common/Card/Card';
 import { formatPrice } from '../../../utils/formatters';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../../../store/slices/cartSlice';
 
-const ProductCard = ({ product, onAddToCart }) => {
+const ProductCard = ({ product }) => {
+  const dispatch = useDispatch();
+
   const handleAddToCart = () => {
-    if (onAddToCart) {
-      onAddToCart(product.id);
-    }
+    dispatch(
+      addToCart({
+        productId: product.id,
+        quantity: 1,
+      })
+    );
   };
 
   return (
@@ -38,4 +47,5 @@ const ProductCard = ({ product, onAddToCart }) => {
   );
 };
 
-export default ProductCard;
+// Sử dụng React.memo để tránh re-render không cần thiết
+export default React.memo(ProductCard);

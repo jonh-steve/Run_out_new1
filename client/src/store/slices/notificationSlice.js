@@ -1,6 +1,6 @@
 // src/store/slices/notificationSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { notificationService } from '../../services/notificationService';
+import notificationService from '../../services/notificationService';
 
 // Async thunk để lấy danh sách thông báo
 export const fetchNotifications = createAsyncThunk(

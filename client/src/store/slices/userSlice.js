@@ -1,6 +1,6 @@
 // src/store/slices/userSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { userService } from '../../services/userService';
+import userService from '../../services/userService';
 
 // Async thunk để lấy thông tin hồ sơ người dùng
 export const fetchUserProfile = createAsyncThunk(

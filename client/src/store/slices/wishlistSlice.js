@@ -1,6 +1,6 @@
 // src/store/slices/wishlistSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { wishlistService } from '../../services/wishlistService';
+import wishlistService from '../../services/wishlistService';
 
 // Async thunk để lấy danh sách sản phẩm yêu thích
 export const fetchWishlist = createAsyncThunk(

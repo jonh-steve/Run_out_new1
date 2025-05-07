@@ -11,7 +11,8 @@
         "routes/*": ["routes/*"],
         "assets/*": ["assets/*"]
       },
-      "checkJs": false
+      "checkJs": true,
+      "jsx": "react-jsx"
     },
     "include": ["src"]
   }

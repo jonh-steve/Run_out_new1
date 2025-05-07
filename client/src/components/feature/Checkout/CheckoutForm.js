@@ -1,11 +1,14 @@
 // src/components/feature/Checkout/CheckoutForm.js
+// Form thanh toán đa bước, xử lý thông tin giao hàng
+// Được sử dụng trong trang Checkout
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Button } from '../../common/Button/Button';
+import Button from '../../common/Button/Button';
 import ShippingInfo from './ShippingInfo';
-import PaymentMethod from './PaymentMethod';
+import { Radio } from '../../common';
 
 const schema = yup.object({
   shippingInfo: yup.object({
@@ -15,13 +18,11 @@ const schema = yup.object({
     city: yup.string().required('Vui lòng nhập thành phố'),
     zipCode: yup.string(),
     notes: yup.string(),
+    shippingMethod: yup.string().required('Vui lòng chọn phương thức vận chuyển'),
   }),
-  paymentMethod: yup.string().required('Vui lòng chọn phương thức thanh toán'),
 });
 
 const CheckoutForm = ({ onSubmit, isSubmitting }) => {
-  const [activeStep, setActiveStep] = useState('shipping'); // 'shipping' | 'payment'
-
   const {
     register,
     handleSubmit,
@@ -37,50 +38,63 @@ const CheckoutForm = ({ onSubmit, isSubmitting }) => {
         city: '',
         zipCode: '',
         notes: '',
+        shippingMethod: 'standard',
       },
-      paymentMethod: 'cod',
     },
   });
 
-  const watchShippingInfo = watch('shippingInfo');
-  const watchPaymentMethod = watch('paymentMethod');
+  const watchShippingMethod = watch('shippingInfo.shippingMethod');
 
-  const handleNextStep = () => {
-    if (activeStep === 'shipping') {
-      setActiveStep('payment');
-    }
-  };
-
-  const handlePrevStep = () => {
-    if (activeStep === 'payment') {
-      setActiveStep('shipping');
-    }
+  // Tính phí vận chuyển dựa trên phương thức
+  const getShippingFee = () => {
+    return watchShippingMethod === 'express' ? 50000 : 30000;
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {activeStep === 'shipping' && (
-        <>
-          <ShippingInfo register={register} errors={errors} />
-          <div className="flex justify-end">
-            <Button onClick={handleNextStep}>Tiếp theo</Button>
-          </div>
-        </>
-      )}
+      <ShippingInfo register={register} errors={errors} />
 
-      {activeStep === 'payment' && (
-        <>
-          <PaymentMethod register={register} selectedMethod={watchPaymentMethod} errors={errors} />
-          <div className="flex justify-between">
-            <Button onClick={handlePrevStep} variant="outline">
-              Quay lại
-            </Button>
-            <Button type="submit" isLoading={isSubmitting}>
-              Hoàn tất đặt hàng
-            </Button>
+      <div className="bg-white p-6 rounded-lg border">
+        <h3 className="font-semibold text-lg mb-4">Phương thức vận chuyển</h3>
+        <div className="space-y-3">
+          <div className="flex items-center p-3 border rounded">
+            <input
+              type="radio"
+              id="standard"
+              value="standard"
+              {...register('shippingInfo.shippingMethod')}
+              className="mr-2"
+            />
+            <label htmlFor="standard" className="flex-1">
+              <div className="font-medium">Giao hàng tiêu chuẩn</div>
+              <div className="text-sm text-gray-500">3-5 ngày - 30.000₫</div>
+            </label>
           </div>
-        </>
-      )}
+
+          <div className="flex items-center p-3 border rounded">
+            <input
+              type="radio"
+              id="express"
+              value="express"
+              {...register('shippingInfo.shippingMethod')}
+              className="mr-2"
+            />
+            <label htmlFor="express" className="flex-1">
+              <div className="font-medium">Giao hàng nhanh</div>
+              <div className="text-sm text-gray-500">1-2 ngày - 50.000₫</div>
+            </label>
+          </div>
+        </div>
+        {errors.shippingInfo?.shippingMethod && (
+          <p className="text-red-500 text-sm mt-1">{errors.shippingInfo.shippingMethod.message}</p>
+        )}
+      </div>
+
+      <div className="flex justify-end">
+        <Button type="submit" isLoading={isSubmitting}>
+          Tiếp tục
+        </Button>
+      </div>
     </form>
   );
 };
