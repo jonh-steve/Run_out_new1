@@ -16,12 +16,13 @@ const ProductsPage = lazy(() => import('../pages/Products'));
 const ProductDetailPage = lazy(() => import('../pages/ProductDetail'));
 const CartPage = lazy(() => import('../pages/Cart'));
 const CheckoutPage = lazy(() => import('../pages/Checkout'));
+const CheckoutSuccessPage = lazy(() => import('../pages/Checkout/Success'));
 const LoginPage = lazy(() => import('../pages/Auth/Login'));
 const RegisterPage = lazy(() => import('../pages/Auth/Register'));
 const ForgotPasswordPage = lazy(() => import('../pages/Auth/ForgotPassword'));
 const ProfilePage = lazy(() => import('../pages/Profile'));
-const OrdersPage = lazy(() => import('../pages/Orders'));
-const OrderDetailPage = lazy(() => import('../pages/OrderDetail'));
+const OrdersPage = lazy(() => import('../pages/Profile/Orders'));
+const OrderDetailPage = lazy(() => import('../pages/Profile/OrderDetail'));
 const NotFoundPage = lazy(() => import('../pages/NotFound'));
 
 // Admin Pages
@@ -40,21 +41,19 @@ const AppRoutes = () => {
         <Route element={<MainLayout />}>
           <Route path={ROUTES.HOME} element={<HomePage />} />
           <Route path={ROUTES.PRODUCTS} element={<ProductsPage />} />
-          
-          <Route path={ROUTES.PRODUCT_DETAIL} element={<ProductDetailPage />} />
-
+          <Route path={`${ROUTES.PRODUCTS}/:id`} element={<ProductDetailPage />} />
           <Route path={ROUTES.CART} element={<CartPage />} />
 
-          
           {/* Protected routes within MainLayout */}
           <Route element={<PrivateRoute />}>
             <Route path={ROUTES.CHECKOUT} element={<CheckoutPage />} />
+            <Route path={`${ROUTES.CHECKOUT}/success`} element={<CheckoutSuccessPage />} />
             <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
-            <Route path={ROUTES.ORDERS} element={<OrdersPage />} />
-            <Route path={ROUTES.ORDER_DETAIL} element={<OrderDetailPage />} />
+            <Route path={`${ROUTES.PROFILE}/orders`} element={<OrdersPage />} />
+            <Route path={`${ROUTES.PROFILE}/orders/:orderId`} element={<OrderDetailPage />} />
           </Route>
         </Route>
-        
+
         {/* Auth routes */}
         <Route element={<AuthLayout />}>
           <Route element={<PublicRoute restricted />}>
@@ -63,7 +62,7 @@ const AppRoutes = () => {
             <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
           </Route>
         </Route>
-        
+
         {/* Admin routes */}
         <Route element={<PrivateRoute requiredRole="admin" />}>
           <Route element={<AdminLayout />}>
@@ -76,10 +75,10 @@ const AppRoutes = () => {
             <Route path={ROUTES.ADMIN_USERS} element={<AdminUsersPage />} />
           </Route>
         </Route>
-        
+
         {/* Redirect for admin path */}
         <Route path={ROUTES.ADMIN} element={<Navigate to={ROUTES.ADMIN_DASHBOARD} replace />} />
-        
+
         {/* 404 route */}
         <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage />} />
         <Route path="*" element={<Navigate to={ROUTES.NOT_FOUND} replace />} />

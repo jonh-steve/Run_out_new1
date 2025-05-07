@@ -8,28 +8,28 @@ const ProductFilter = ({ onFilterChange }) => {
     minPrice: '',
     maxPrice: '',
     brand: '',
-    inStock: false
+    inStock: false,
   });
-  
+
   const debouncedFilters = useDebounce(filters, 500);
-  
+
   // Gọi onFilterChange khi filters thay đổi
   React.useEffect(() => {
     onFilterChange(debouncedFilters);
   }, [debouncedFilters, onFilterChange]);
-  
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
-  
+
   return (
     <div className="bg-white p-4 rounded-lg shadow mb-6">
       <h3 className="text-lg font-bold mb-4">Lọc Sản Phẩm</h3>
-      
+
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2">Khoảng Giá</label>
         <div className="flex space-x-2">
@@ -51,7 +51,7 @@ const ProductFilter = ({ onFilterChange }) => {
           />
         </div>
       </div>
-      
+
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2">Thương Hiệu</label>
         <select
@@ -66,7 +66,7 @@ const ProductFilter = ({ onFilterChange }) => {
           <option value="MasterBall">MasterBall</option>
         </select>
       </div>
-      
+
       <div className="mb-4">
         <label className="flex items-center">
           <input

@@ -2,6 +2,37 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import authService from '../../services/authService';
 import { setAuthToken, removeAuthToken } from '../../utils/authToken';
 
+// Hàm tiện ích để thao tác với localStorage an toàn
+const safeLocalStorage = {
+  getItem: (key, defaultValue = null) => {
+    try {
+      const value = localStorage.getItem(key);
+      return value !== null ? value : defaultValue;
+    } catch (error) {
+      console.error(`Lỗi khi đọc ${key} từ localStorage:`, error);
+      return defaultValue;
+    }
+  },
+  setItem: (key, value) => {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (error) {
+      console.error(`Lỗi khi lưu ${key} vào localStorage:`, error);
+      return false;
+    }
+  },
+  removeItem: (key) => {
+    try {
+      localStorage.removeItem(key);
+      return true;
+    } catch (error) {
+      console.error(`Lỗi khi xóa ${key} từ localStorage:`, error);
+      return false;
+    }
+  },
+};
+
 // Async thunks
 export const login = createAsyncThunk('auth/login', async (credentials, { rejectWithValue }) => {
   try {
@@ -36,8 +67,8 @@ export const fetchCurrentUser = createAsyncThunk(
 // Initial state
 const initialState = {
   user: null,
-  token: localStorage.getItem('token'),
-  isAuthenticated: !!localStorage.getItem('token'),
+  token: safeLocalStorage.getItem('token'),
+  isAuthenticated: !!safeLocalStorage.getItem('token'),
   loading: false,
   error: null,
 };
@@ -51,8 +82,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      removeAuthToken();
-      localStorage.removeItem('token');
+      // Không thao tác với localStorage và removeAuthToken ở đây nữa
     },
     clearError: (state) => {
       state.error = null;
@@ -70,10 +100,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload.user;
         state.token = action.payload.token;
-
-        // Lưu token vào localStorage và thiết lập header cho axios
-        localStorage.setItem('token', action.payload.token);
-        setAuthToken(action.payload.token);
+        // Không thao tác với localStorage và setAuthToken ở đây nữa
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -90,10 +117,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload.user;
         state.token = action.payload.token;
-
-        // Lưu token vào localStorage và thiết lập header cho axios
-        localStorage.setItem('token', action.payload.token);
-        setAuthToken(action.payload.token);
+        // Không thao tác với localStorage và setAuthToken ở đây nữa
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
@@ -117,8 +141,7 @@ const authSlice = createSlice({
           state.user = null;
           state.token = null;
           state.isAuthenticated = false;
-          removeAuthToken();
-          localStorage.removeItem('token');
+          // Không thao tác với localStorage và removeAuthToken ở đây nữa
         }
       });
   },
@@ -133,6 +156,29 @@ export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectUser = (state) => state.auth.user;
 export const selectAuthLoading = (state) => state.auth.loading;
 export const selectAuthError = (state) => state.auth.error;
+
+// Middleware để xử lý side effects (như localStorage và authToken)
+export const authMiddleware = (store) => (next) => (action) => {
+  // Xử lý trước khi action được dispatch
+  const result = next(action);
+
+  // Xử lý sau khi action đã được dispatch
+  if (login.fulfilled.match(action) || register.fulfilled.match(action)) {
+    // Lưu token vào localStorage và thiết lập header cho axios
+    safeLocalStorage.setItem('token', action.payload.token);
+    setAuthToken(action.payload.token);
+  } else if (
+    logout.match(action) ||
+    (fetchCurrentUser.rejected.match(action) &&
+      (action.payload === 'Unauthorized' || action.payload === 'Invalid token'))
+  ) {
+    // Xóa token khỏi localStorage và header
+    safeLocalStorage.removeItem('token');
+    removeAuthToken();
+  }
+
+  return result;
+};
 
 // Reducer
 export default authSlice.reducer;
