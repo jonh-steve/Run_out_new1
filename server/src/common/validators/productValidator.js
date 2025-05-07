@@ -232,8 +232,167 @@ const updateProductValidator = Joi.object({
   isPromoted: Joi.boolean(),
   isFeatured: Joi.boolean(),
 });
+/**
+/**
+ * Xác thực dữ liệu sản phẩm với nhiều tùy chọn nâng cao
+ * @param {Object} data - Dữ liệu sản phẩm cần xác thực
+ * @param {Object|Boolean} options - Các tùy chọn xác thực hoặc boolean cho isUpdate
+ * @property {Boolean} options.isUpdate - Có phải đang cập nhật không (true) hay đang tạo mới (false)
+ * @property {Array<string>} options.fields - Danh sách các trường cần xác thực (nếu chỉ muốn xác thực một số trường)
+ * @property {Boolean} options.formatErrors - Có định dạng lỗi thành dạng dễ đọc không
+ * @property {Boolean} options.checkBusinessRules - Có kiểm tra các quy tắc nghiệp vụ không
+ * @returns {Object} - Kết quả xác thực { error, value, isValid, errorDetails }
+ */
+const validateProductData = (data, options = {}) => {
+  // Xử lý trường hợp options là boolean (tương thích ngược)
+  let isUpdate = false;
+  let fields = null;
+  let formatErrors = false;
+  let checkBusinessRules = false;
 
+  // Kiểm tra kiểu dữ liệu của options
+  if (typeof options === 'boolean') {
+    isUpdate = options;
+  } else if (options && typeof options === 'object') {
+    // Chỉ lấy các thuộc tính nếu options là object
+    isUpdate = options.isUpdate === true;
+    fields = Array.isArray(options.fields) ? options.fields : null;
+    formatErrors = options.formatErrors === true;
+    checkBusinessRules = options.checkBusinessRules === true;
+  }
+
+  // Chọn schema phù hợp
+  let schema = isUpdate ? updateProductValidator : createProductValidator;
+
+  // Nếu chỉ xác thực một số trường cụ thể
+  if (fields && Array.isArray(fields) && fields.length > 0) {
+    const schemaToUse = isUpdate ? updateProductValidator : createProductValidator;
+    const filteredSchema = Joi.object(
+      fields.reduce((acc, field) => {
+        if (
+          schemaToUse.$_terms &&
+          schemaToUse.$_terms.keys &&
+          schemaToUse.$_terms.keys.some((k) => k.key === field)
+        ) {
+          acc[field] = schemaToUse.$_terms.keys.find((k) => k.key === field).schema;
+        }
+        return acc;
+      }, {})
+    );
+    schema = filteredSchema;
+  }
+
+  // Thực hiện xác thực cơ bản
+  const validationResult = schema.validate(data, { abortEarly: false });
+
+  // Nếu không cần xử lý thêm, trả về kết quả ngay
+  if (!formatErrors && !checkBusinessRules) {
+    return {
+      ...validationResult,
+      isValid: !validationResult.error,
+    };
+  }
+
+  // Xử lý kết quả
+  let result = {
+    value: validationResult.value,
+    isValid: !validationResult.error,
+    errorDetails: null,
+  };
+
+  // Định dạng lỗi thành dạng dễ đọc nếu cần
+  if (validationResult.error && formatErrors) {
+    const errorDetails = {};
+
+    validationResult.error.details.forEach((err) => {
+      const field = err.path.join('.');
+      if (!errorDetails[field]) {
+        errorDetails[field] = [];
+      }
+      errorDetails[field].push(err.message);
+    });
+
+    result.error = validationResult.error;
+    result.errorDetails = errorDetails;
+  } else {
+    result.error = validationResult.error;
+  }
+
+  // Kiểm tra các quy tắc nghiệp vụ nếu cần
+  if (checkBusinessRules && !result.error) {
+    const businessErrors = validateBusinessRules(data, isUpdate);
+
+    if (businessErrors.length > 0) {
+      result.isValid = false;
+      result.businessErrors = businessErrors;
+
+      if (formatErrors) {
+        const errorDetails = result.errorDetails || {};
+
+        businessErrors.forEach((err) => {
+          const field = err.field;
+          if (!errorDetails[field]) {
+            errorDetails[field] = [];
+          }
+          errorDetails[field].push(err.message);
+        });
+
+        result.errorDetails = errorDetails;
+      }
+    }
+  }
+
+  return result;
+};
+/**
+ * Kiểm tra các quy tắc nghiệp vụ phức tạp không thể xác thực bằng Joi
+ * @param {Object} data - Dữ liệu sản phẩm
+ * @param {Boolean} isUpdate - Có phải đang cập nhật không
+ * @returns {Array} - Danh sách lỗi nghiệp vụ
+ */
+function validateBusinessRules(data, isUpdate) {
+  const errors = [];
+
+  // Kiểm tra giá khuyến mãi phải nhỏ hơn giá gốc
+  if (data.price && data.salePrice && data.salePrice >= data.price) {
+    errors.push({
+      field: 'salePrice',
+      message: 'Giá khuyến mãi phải nhỏ hơn giá gốc',
+    });
+  }
+
+  // Kiểm tra nếu có discount thì phải có các trường bắt buộc
+  if (data.discount && data.discount.percentage) {
+    if (!data.discount.startDate) {
+      errors.push({
+        field: 'discount.startDate',
+        message: 'Ngày bắt đầu khuyến mãi là bắt buộc khi có phần trăm giảm giá',
+      });
+    }
+
+    if (!data.discount.endDate) {
+      errors.push({
+        field: 'discount.endDate',
+        message: 'Ngày kết thúc khuyến mãi là bắt buộc khi có phần trăm giảm giá',
+      });
+    }
+  }
+
+  // Kiểm tra ít nhất một hình ảnh phải là hình chính
+  if (data.images && data.images.length > 0) {
+    const hasPrimaryImage = data.images.some((img) => img.isPrimary);
+    if (!hasPrimaryImage) {
+      errors.push({
+        field: 'images',
+        message: 'Phải có ít nhất một hình ảnh được đánh dấu là hình chính (isPrimary)',
+      });
+    }
+  }
+
+  return errors;
+}
 module.exports = {
   createProductValidator,
   updateProductValidator,
+  validateProductData,
 };

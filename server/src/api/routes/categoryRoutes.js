@@ -3,8 +3,8 @@
  * Xử lý các request liên quan đến đánh giá sản phẩm
  */
 
-const { catchAsync } = require('../../common/utils/catchAsync');
-const { responseHandler } = require('../../common/utils/responseHandler');
+const catchAsync = require('../../common/utils/catchAsync');
+const responseHandler = require('../../common/utils/responseHandler');
 const reviewService = require('../../services/review/reviewService');
 
 /**
@@ -48,15 +48,15 @@ const getProductReviews = catchAsync(async (req, res) => {
  */
 const getUserReviews = catchAsync(async (req, res) => {
   const { userId } = req.params;
-  
+
   // Kiểm tra quyền truy cập
   const requestUserId = req.user.id;
   const isAdmin = req.user.role === 'admin';
-  
+
   if (userId !== requestUserId && !isAdmin) {
     return responseHandler.forbidden(res, 'Bạn không có quyền xem đánh giá của người dùng khác');
   }
-  
+
   const features = req.query;
   const reviews = await reviewService.getUserReviews(userId, features);
   return responseHandler.success(res, reviews);
@@ -71,7 +71,7 @@ const createReview = catchAsync(async (req, res) => {
   const { productId } = req.params;
   const userId = req.user.id;
   const reviewData = req.body;
-  
+
   const newReview = await reviewService.createReview(productId, userId, reviewData);
   return responseHandler.created(res, newReview);
 });
@@ -86,7 +86,7 @@ const updateReview = catchAsync(async (req, res) => {
   const userId = req.user.id;
   const isAdmin = req.user.role === 'admin';
   const reviewData = req.body;
-  
+
   const updatedReview = await reviewService.updateReview(id, userId, reviewData, isAdmin);
   return responseHandler.success(res, updatedReview);
 });
@@ -100,7 +100,7 @@ const deleteReview = catchAsync(async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id;
   const isAdmin = req.user.role === 'admin';
-  
+
   await reviewService.deleteReview(id, userId, isAdmin);
   return responseHandler.success(res, { message: 'Đánh giá đã được xóa thành công' });
 });
@@ -114,7 +114,7 @@ const voteReview = catchAsync(async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id;
   const { vote } = req.body; // 1 for upvote, -1 for downvote
-  
+
   const updatedReview = await reviewService.voteReview(id, userId, vote);
   return responseHandler.success(res, updatedReview);
 });
@@ -128,7 +128,7 @@ const moderateReview = catchAsync(async (req, res) => {
   const { id } = req.params;
   const adminId = req.user.id;
   const { action, reason } = req.body; // 'approve' or 'reject'
-  
+
   const moderatedReview = await reviewService.moderateReview(id, action, reason, adminId);
   return responseHandler.success(res, moderatedReview);
 });
@@ -142,7 +142,7 @@ const reportReview = catchAsync(async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id;
   const { reason, description } = req.body;
-  
+
   const reportedReview = await reviewService.reportReview(id, userId, reason, description);
   return responseHandler.success(res, reportedReview);
 });
@@ -157,7 +157,7 @@ const addReviewResponse = catchAsync(async (req, res) => {
   const userId = req.user.id;
   const isAdmin = req.user.role === 'admin';
   const { content } = req.body;
-  
+
   const updatedReview = await reviewService.addReviewResponse(id, userId, content, isAdmin);
   return responseHandler.success(res, updatedReview);
 });
@@ -173,5 +173,5 @@ module.exports = {
   voteReview,
   moderateReview,
   reportReview,
-  addReviewResponse
+  addReviewResponse,
 };

@@ -31,7 +31,7 @@ const userRoutes = require('./api/routes/userRoutes');
 // Middleware
 const { loggingMiddleware } = require('./api/middleware/loggingMiddleware');
 const { errorHandler } = require('./api/middleware/errorMiddleware');
-const { authMiddleware } = require('./api/middleware/authMiddleware');
+// Sửa cách import authMiddleware - không cần import ở đây vì đã import trong routes
 
 // Khởi tạo app Express
 const app = express();
@@ -93,9 +93,9 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 // Routes API
 app.use('/api/products', productRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/users', authMiddleware, userRoutes); // Protected với auth middleware
-app.use('/api/bookings', authMiddleware, bookingRoutes);
-app.use('/api/payments', paymentRoutes);
+app.use('/api/users', userRoutes); // Không cần thêm middleware ở đây vì đã có trong routes
+// app.use('/api/bookings', bookingRoutes);
+// app.use('/api/payments', paymentRoutes);
 
 // Route sức khỏe hệ thống
 app.get('/api/health', (req, res) => {

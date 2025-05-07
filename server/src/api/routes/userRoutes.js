@@ -2,7 +2,7 @@
  * Routes cho quản lý người dùng
  * @author Steve
  * @project RunOut-Biliard
- * 
+ *
  * @typedef {import('express').Request} Request
  * @typedef {import('express').Response} Response
  * @typedef {import('express').NextFunction} NextFunction
@@ -11,8 +11,8 @@
 
 const express = require('express');
 const userController = require('../controllers/userController');
-const { authenticate, authorize } = require('../../middleware/authMiddleware'); // Cập nhật từ auth thành authMiddleware
-const { validateMongoId, validate } = require('../../middleware/validate');
+const { authenticate, restrictTo } = require('../../api/middleware/authMiddleware'); // Cập nhật từ auth thành authMiddleware
+const { validateMongoId, validate } = require('../../api/middleware/validationMiddleware');
 const userValidator = require('../../common/validators/userValidator');
 
 /**
@@ -28,7 +28,7 @@ const router = express.Router();
 router.post(
   '/',
   /** @type {ExpressMiddleware} */ (authenticate),
-  /** @type {ExpressMiddleware} */ (authorize('admin')),
+  /** @type {ExpressMiddleware} */ (restrictTo('admin')),
   /** @type {ExpressMiddleware} */ (validate(userValidator.createUser)),
   /** @type {ExpressMiddleware} */ (userController.createUser)
 );
@@ -41,7 +41,7 @@ router.post(
 router.get(
   '/',
   /** @type {ExpressMiddleware} */ (authenticate),
-  /** @type {ExpressMiddleware} */ (authorize('admin')),
+  /** @type {ExpressMiddleware} */ (restrictTo('admin')),
   /** @type {ExpressMiddleware} */ (userController.getUsers)
 );
 
@@ -78,7 +78,7 @@ router.put(
 router.delete(
   '/:id',
   /** @type {ExpressMiddleware} */ (authenticate),
-  /** @type {ExpressMiddleware} */ (authorize('admin')),
+  /** @type {ExpressMiddleware} */ (restrictTo('admin')),
   /** @type {ExpressMiddleware} */ (validateMongoId()),
   /** @type {ExpressMiddleware} */ (userController.deleteUser)
 );

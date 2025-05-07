@@ -18,18 +18,10 @@ router.get('/:id', reviewController.getReviewById);
 router.use(authMiddleware.authenticate);
 
 // Đánh giá hay upvote, downvote một đánh giá
-router.post(
-  '/:id/vote',
-  validate(reviewValidator.voteReview),
-  reviewController.voteReview
-);
+router.post('/:id/vote', validate(reviewValidator.voteReview), reviewController.voteReview);
 
 // Báo cáo một đánh giá không phù hợp
-router.post(
-  '/:id/report',
-  validate(reviewValidator.reportReview),
-  reviewController.reportReview
-);
+router.post('/:id/report', validate(reviewValidator.reportReview), reviewController.reportReview);
 
 // Thêm phản hồi cho đánh giá
 router.post(
@@ -39,11 +31,7 @@ router.post(
 );
 
 // Cập nhật hoặc xóa đánh giá (người dùng chỉ có thể chỉnh sửa/xóa đánh giá của chính họ)
-router.put(
-  '/:id',
-  validate(reviewValidator.updateReview),
-  reviewController.updateReview
-);
+router.put('/:id', validate(reviewValidator.updateReview), reviewController.updateReview);
 
 router.delete('/:id', reviewController.deleteReview);
 

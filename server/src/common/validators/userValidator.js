@@ -310,4 +310,4 @@ const userValidator = {
   }),
 };
 
-module.exports = { userValidator };
+module.exports =  userValidator ;

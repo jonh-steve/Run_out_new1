@@ -1,4 +1,3 @@
-
 // server/src/services/cache/redisCache.js
 const redis = require('redis');
 const { promisify } = require('util');
@@ -62,7 +61,7 @@ class RedisCache {
       if (!this.client) {
         throw new Error('Redis client chưa được khởi tạo');
       }
-  
+
       // Sử dụng try-catch riêng cho từng phương thức
       try {
         if (typeof this.client.get === 'function')
@@ -70,98 +69,98 @@ class RedisCache {
       } catch (e) {
         logger.warn('Không thể promisify phương thức get');
       }
-  
+
       try {
         if (typeof this.client.set === 'function')
           this.setAsync = promisify(this.client.set.bind(this.client));
       } catch (e) {
         logger.warn('Không thể promisify phương thức set');
       }
-  
+
       try {
         if (typeof this.client.del === 'function')
           this.delAsync = promisify(this.client.del.bind(this.client));
       } catch (e) {
         logger.warn('Không thể promisify phương thức del');
       }
-  
+
       try {
         if (typeof this.client.keys === 'function')
           this.keysAsync = promisify(this.client.keys.bind(this.client));
       } catch (e) {
         logger.warn('Không thể promisify phương thức keys');
       }
-  
+
       try {
         if (typeof this.client.flushdb === 'function')
           this.flushdbAsync = promisify(this.client.flushdb.bind(this.client));
       } catch (e) {
         logger.warn('Không thể promisify phương thức flushdb');
       }
-  
+
       try {
         if (typeof this.client.exists === 'function')
           this.existsAsync = promisify(this.client.exists.bind(this.client));
       } catch (e) {
         logger.warn('Không thể promisify phương thức exists');
       }
-  
+
       try {
         if (typeof this.client.expire === 'function')
           this.expireAsync = promisify(this.client.expire.bind(this.client));
       } catch (e) {
         logger.warn('Không thể promisify phương thức expire');
       }
-  
+
       try {
         if (typeof this.client.ttl === 'function')
           this.ttlAsync = promisify(this.client.ttl.bind(this.client));
       } catch (e) {
         logger.warn('Không thể promisify phương thức ttl');
       }
-  
+
       try {
         if (typeof this.client.incr === 'function')
           this.incrAsync = promisify(this.client.incr.bind(this.client));
       } catch (e) {
         logger.warn('Không thể promisify phương thức incr');
       }
-  
+
       try {
         if (typeof this.client.decr === 'function')
           this.decrAsync = promisify(this.client.decr.bind(this.client));
       } catch (e) {
         logger.warn('Không thể promisify phương thức decr');
       }
-  
+
       try {
         if (typeof this.client.hgetall === 'function')
           this.hgetallAsync = promisify(this.client.hgetall.bind(this.client));
       } catch (e) {
         logger.warn('Không thể promisify phương thức hgetall');
       }
-  
+
       try {
         if (typeof this.client.hset === 'function')
           this.hsetAsync = promisify(this.client.hset.bind(this.client));
       } catch (e) {
         logger.warn('Không thể promisify phương thức hset');
       }
-  
+
       try {
         if (typeof this.client.hmset === 'function')
           this.hmsetAsync = promisify(this.client.hmset.bind(this.client));
       } catch (e) {
         logger.warn('Không thể promisify phương thức hmset');
       }
-  
+
       try {
         if (typeof this.client.hdel === 'function')
           this.hdelAsync = promisify(this.client.hdel.bind(this.client));
       } catch (e) {
         logger.warn('Không thể promisify phương thức hdel');
       }
-  
+
       logger.info('Các phương thức Redis đã được promisify thành công');
     } catch (error) {
       logger.error('Lỗi khi promisify các phương thức Redis:', error);

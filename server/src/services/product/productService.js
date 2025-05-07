@@ -9,7 +9,7 @@ const reviewRepository = require('../../data/repositories/reviewRepository');
 const ProductDTO = require('../../data/dto/productDTO');
 const ApiFeatures = require('../../utils/apiFeatures');
 const AppError = require('../../common/errors/apiError');
-const { redisClient } = require('../cache/redisCache');
+const redisClient = require('../cache/redisCache');
 const { formatProductResponse } = require('../../common/utils/formatters');
 const { validateProductData } = require('../../common/validators/productValidator');
 
@@ -141,7 +141,7 @@ class ProductService {
         const product = await this.productRepository.findById(productId);
 
         if (!product) {
-          throw new AppError('Không tìm thấy sản phẩm', 404);
+          throw new AppError(404, 'Không tìm thấy sản phẩm');
         }
 
         // Lấy thêm thông tin đánh giá
@@ -179,14 +179,14 @@ class ProductService {
       // Xác thực dữ liệu
       const { error } = validateProductData(productData);
       if (error) {
-        throw new AppError(`Dữ liệu không hợp lệ: ${error.message}`, 400);
+        throw new AppError(400, `Dữ liệu không hợp lệ: ${error.message}`);
       }
 
       // Kiểm tra danh mục tồn tại
       if (productData.categories && productData.categories.length) {
         const validCategories = await this.categoryRepository.findByIds(productData.categories);
         if (validCategories.length !== productData.categories.length) {
-          throw new AppError('Một hoặc nhiều danh mục không tồn tại', 400);
+          throw new AppError(400, 'Một hoặc nhiều danh mục không tồn tại');
         }
       }
 
@@ -223,14 +223,14 @@ class ProductService {
       // Kiểm tra sản phẩm tồn tại
       const existingProduct = await this.productRepository.findById(productId);
       if (!existingProduct) {
-        throw new AppError('Không tìm thấy sản phẩm', 404);
+        throw new AppError(404, 'Không tìm thấy sản phẩm');
       }
 
       // Xác thực dữ liệu cập nhật
       if (Object.keys(updateData).length > 0) {
         const { error } = validateProductData(updateData, true);
         if (error) {
-          throw new AppError(`Dữ liệu cập nhật không hợp lệ: ${error.message}`, 400);
+          throw new AppError(400, `Dữ liệu cập nhật không hợp lệ: ${error.message}`);
         }
       }
 
@@ -238,7 +238,7 @@ class ProductService {
       if (updateData.categories && updateData.categories.length) {
         const validCategories = await this.categoryRepository.findByIds(updateData.categories);
         if (validCategories.length !== updateData.categories.length) {
-          throw new AppError('Một hoặc nhiều danh mục không tồn tại', 400);
+          throw new AppError(400, 'Một hoặc nhiều danh mục không tồn tại');
         }
       }
 
@@ -275,7 +275,7 @@ class ProductService {
       // Kiểm tra sản phẩm tồn tại
       const existingProduct = await this.productRepository.findById(productId);
       if (!existingProduct) {
-        throw new AppError('Không tìm thấy sản phẩm', 404);
+        throw new AppError(404, 'Không tìm thấy sản phẩm');
       }
 
       // Kiểm tra sản phẩm có trong đơn hàng không
@@ -306,12 +306,12 @@ class ProductService {
   async updateStock(productId, quantity) {
     try {
       if (isNaN(quantity)) {
-        throw new AppError('Số lượng phải là số', 400);
+        throw new AppError(400, 'Số lượng tồn kho không hợp lệ');
       }
 
       const product = await this.productRepository.findById(productId);
       if (!product) {
-        throw new AppError('Không tìm thấy sản phẩm', 404);
+        throw new AppError(404, 'Không tìm thấy sản phẩm');
       }
 
       // Cập nhật tồn kho
@@ -370,7 +370,7 @@ class ProductService {
       // Kiểm tra danh mục tồn tại
       const category = await this.categoryRepository.findById(categoryId);
       if (!category) {
-        throw new AppError('Không tìm thấy danh mục', 404);
+        throw new AppError(404, 'Không tìm thấy danh mục');
       }
 
       // Tạo khóa cache
@@ -423,7 +423,7 @@ class ProductService {
   async searchProducts(query, options = {}) {
     try {
       if (!query || query.trim() === '') {
-        throw new AppError('Từ khóa tìm kiếm không được để trống', 400);
+        throw new AppError(400, 'Từ khóa tìm kiếm không được để trống');
       }
 
       // Tạo khóa cache
@@ -464,6 +464,64 @@ class ProductService {
   }
 
   /**
+   * Lấy thống kê sản phẩm
+   * @returns {Promise<Object>} Thống kê sản phẩm
+   */
+  async getProductStats() {
+    try {
+      const cacheKey = 'products:stats';
+
+      return await this.withCache(cacheKey, this.cacheExpiry, async () => {
+        // Tổng số sản phẩm
+        const totalProducts = await this.productRepository.countDocuments();
+
+        // Số sản phẩm theo trạng thái
+        const activeProducts = await this.productRepository.countDocuments({ status: 'active' });
+        const draftProducts = await this.productRepository.countDocuments({ status: 'draft' });
+        const discontinuedProducts = await this.productRepository.countDocuments({
+          status: 'discontinued',
+        });
+
+        // Số sản phẩm có giảm giá
+        const productsOnSale = await this.productRepository.countDocuments({
+          salePrice: { $gt: 0 },
+        });
+
+        // Số sản phẩm hết hàng
+        const outOfStockProducts = await this.productRepository.countDocuments({
+          stock: 0,
+          status: 'active',
+        });
+
+        // Số sản phẩm theo danh mục
+        const categoryCounts = await this.productRepository.aggregateByCategoryWithCount();
+
+        // Số sản phẩm theo thương hiệu
+        const brandCounts = await this.productRepository.aggregateByBrandWithCount();
+
+        // Sản phẩm được xem nhiều nhất
+        const mostViewedProducts = await this.productRepository.findMostViewed(5);
+
+        return {
+          totalProducts,
+          byStatus: {
+            active: activeProducts,
+            draft: draftProducts,
+            discontinued: discontinuedProducts,
+          },
+          productsOnSale,
+          outOfStockProducts,
+          byCategory: categoryCounts,
+          byBrand: brandCounts,
+          mostViewed: mostViewedProducts,
+        };
+      });
+    } catch (error) {
+      this.handleError(error, 'Không thể lấy thống kê sản phẩm');
+    }
+  }
+
+  /**
    * Tạo slug từ tên sản phẩm
    * @param {string} name - Tên sản phẩm
    * @returns {string} - Slug đã tạo
@@ -484,7 +542,7 @@ class ProductService {
     try {
       const product = await this.productRepository.findById(productId);
       if (!product) {
-        throw new AppError('Không tìm thấy sản phẩm', 404);
+        throw new AppError(404, 'Không tìm thấy sản phẩm');
       }
 
       // Tăng số lượt xem
@@ -514,7 +572,7 @@ class ProductService {
         // Lấy thông tin sản phẩm
         const product = await this.productRepository.findById(productId);
         if (!product) {
-          throw new AppError('Không tìm thấy sản phẩm', 404);
+          throw new AppError(404, 'Không tìm thấy sản phẩm');
         }
 
         // Lấy sản phẩm cùng danh mục
@@ -530,7 +588,7 @@ class ProductService {
         );
       });
     } catch (error) {
-      this.handleError(error, 'Không thể lấy danh sách sản phẩm li��n quan');
+      this.handleError(error, 'Không thể lấy danh sách sản phẩm liên quan');
     }
   }
 }
