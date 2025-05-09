@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUserProfile } from '../../../store/slices/userSlice';
-import { Button } from '../../common/Button/Button';
-import { Input } from '../../common/Input/Input';
+import { Button } from '../../common/Button';
+import { Input } from '../../common/Input';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';

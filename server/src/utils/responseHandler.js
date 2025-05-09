@@ -1,88 +1,87 @@
 /**
- * Response Handler Utility - định dạng chuẩn hóa cho responses
- * @author Steve
- * @project RunOut-Biliard
+ * Tiện ích xử lý response chuẩn hóa
  */
+const responseHandler = {
+  /**
+   * Trả về response thành công
+   *
+   * @param {Object} res - Express response object
+   * @param {Object} data - Dữ liệu trả về
+   * @param {String} message - Thông báo thành công
+   * @param {Number} statusCode - HTTP status code
+   */
+  success: (res, data = null, message = 'Success', statusCode = 200) => {
+    return res.status(statusCode).json({
+      status: 'success',
+      message,
+      data,
+    });
+  },
 
-/**
- * Gửi response thành công
- * @param {Object} res - Express response object
- * @param {number} statusCode - HTTP status code
- * @param {string} message - Thông báo thành công
- * @param {*} data - Dữ liệu trả về
- */
-exports.sendSuccess = (res, statusCode = 200, message = 'Success', data = null) => {
-  const response = {
-    status: 'success',
-    message,
-  };
+  /**
+   * Trả về response lỗi
+   *
+   * @param {Object} res - Express response object
+   * @param {String} message - Thông báo lỗi
+   * @param {Number} statusCode - HTTP status code
+   * @param {Object} errors - Chi tiết lỗi
+   */
+  error: (res, message = 'Error occurred', statusCode = 400, errors = null) => {
+    const response = {
+      status: 'error',
+      message,
+    };
 
-  if (data !== null) {
-    response.data = data;
-  }
+    if (errors) {
+      response.errors = errors;
+    }
 
-  res.status(statusCode).json(response);
+    return res.status(statusCode).json(response);
+  },
+
+  /**
+   * Trả về response khi tạo thành công
+   *
+   * @param {Object} res - Express response object
+   * @param {Object} data - Dữ liệu trả về
+   * @param {String} message - Thông báo thành công
+   */
+  created: (res, data = null, message = 'Resource created successfully') => {
+    return responseHandler.success(res, data, message, 201);
+  },
+
+  /**
+   * Trả về response không có nội dung
+   *
+   * @param {Object} res - Express response object
+   */
+  noContent: (res) => {
+    return res.status(204).end();
+  },
+
+  /**
+   * Trả về response với dữ liệu được phân trang
+   *
+   * @param {Object} res - Express response object
+   * @param {Array} data - Dữ liệu trả về
+   * @param {Number} page - Trang hiện tại
+   * @param {Number} limit - Số lượng items mỗi trang
+   * @param {Number} total - Tổng số items
+   */
+  paginated: (res, data, page, limit, total) => {
+    const totalPages = Math.ceil(total / limit);
+
+    return res.status(200).json({
+      status: 'success',
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    });
+  },
 };
 
-/**
- * Gửi response lỗi
- * @param {Object} res - Express response object
- * @param {number} statusCode - HTTP status code
- * @param {string} message - Thông báo lỗi
- * @param {Object} errors - Chi tiết lỗi (optional)
- */
-exports.sendError = (res, statusCode = 500, message = 'Error', errors = null) => {
-  const response = {
-    status: 'error',
-    message,
-  };
-
-  if (errors !== null) {
-    response.errors = errors;
-  }
-
-  res.status(statusCode).json(response);
-};
-
-/**
- * Gửi response với dữ liệu phân trang
- * @param {Object} res - Express response object
- * @param {number} statusCode - HTTP status code
- * @param {string} message - Thông báo
- * @param {Array} data - Dữ liệu trả về
- * @param {Object} pagination - Thông tin phân trang
- */
-exports.sendPaginated = (
-  res,
-  statusCode = 200,
-  message = 'Success',
-  data = [],
-  pagination = {}
-) => {
-  const response = {
-    status: 'success',
-    message,
-    data,
-    pagination,
-  };
-
-  res.status(statusCode).json(response);
-};
-
-/**
- * Gửi response cho created
- * @param {Object} res - Express response object
- * @param {string} message - Thông báo
- * @param {*} data - Dữ liệu trả về
- */
-exports.sendCreated = (res, message = 'Created successfully', data = null) => {
-  exports.sendSuccess(res, 201, message, data);
-};
-
-/**
- * Gửi response không có nội dung
- * @param {Object} res - Express response object
- */
-exports.sendNoContent = (res) => {
-  res.status(204).end();
-};
+module.exports = responseHandler;

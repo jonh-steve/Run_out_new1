@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Button } from '../../../common/Button/Button';
-import { Input } from '../../../common/Input/Input';
+import { Button } from '../../../common/Button';
+import { Input } from '../../../common/Input';
 
 const schema = yup.object({
   name: yup.string().required('Tên sản phẩm không được để trống'),

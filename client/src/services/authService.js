@@ -1,3 +1,6 @@
+// File: client/src/services/authService.js
+// Dịch vụ xác thực người dùng trong ứng dụng client
+
 import axios from 'axios';
 import { api } from './api';
 
@@ -52,41 +55,127 @@ export const {
   useGetCurrentUserQuery,
 } = authApi;
 
+// Utility để quản lý token
+const authToken = {
+  setToken: (token) => {
+    localStorage.setItem('token', token);
+  },
+  getToken: () => {
+    return localStorage.getItem('token');
+  },
+  removeToken: () => {
+    localStorage.removeItem('token');
+  },
+};
+
 // Regular API service for use with Redux Thunk
 const authService = {
   // Đăng nhập
   login: async (credentials) => {
-    return await axios.post(`${AUTH_URL}/login`, credentials);
+    try {
+      const response = await axios.post(`${AUTH_URL}/login`, credentials);
+
+      // Lưu token vào localStorage nếu có
+      if (response.data.token) {
+        authToken.setToken(response.data.token);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Lỗi đăng nhập:', error);
+      throw error;
+    }
   },
 
   // Đăng ký
   register: async (userData) => {
-    return await axios.post(`${AUTH_URL}/register`, userData);
+    try {
+      const response = await axios.post(`${AUTH_URL}/register`, userData);
+
+      // Lưu token vào localStorage nếu có
+      if (response.data.token) {
+        authToken.setToken(response.data.token);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Lỗi đăng ký:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   // Quên mật khẩu
   forgotPassword: async (email) => {
-    return await axios.post(`${AUTH_URL}/forgot-password`, { email });
+    try {
+      return await axios.post(`${AUTH_URL}/forgot-password`, { email });
+    } catch (error) {
+      console.error('Lỗi quên mật khẩu:', error);
+      throw error;
+    }
   },
 
   // Đặt lại mật khẩu
   resetPassword: async (token, password) => {
-    return await axios.post(`${AUTH_URL}/reset-password`, { token, password });
+    try {
+      return await axios.post(`${AUTH_URL}/reset-password`, { token, password });
+    } catch (error) {
+      console.error('Lỗi đặt lại mật khẩu:', error);
+      throw error;
+    }
   },
 
   // Lấy thông tin người dùng hiện tại
   getCurrentUser: async () => {
-    return await axios.get(`${AUTH_URL}/me`);
+    try {
+      const token = authToken.getToken();
+      if (!token) {
+        throw new Error('Không tìm thấy token xác thực');
+      }
+
+      return await axios.get(`${AUTH_URL}/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (error) {
+      console.error('Lỗi lấy thông tin người dùng:', error);
+      throw error;
+    }
   },
 
   // Cập nhật thông tin người dùng
   updateProfile: async (userData) => {
-    return await axios.put(`${API_URL}/users/profile`, userData);
+    try {
+      const token = authToken.getToken();
+      return await axios.put(`${API_URL}/users/profile`, userData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (error) {
+      console.error('Lỗi cập nhật thông tin:', error);
+      throw error;
+    }
   },
 
   // Đổi mật khẩu
   changePassword: async (passwordData) => {
-    return await axios.put(`${API_URL}/users/password`, passwordData);
+    try {
+      const token = authToken.getToken();
+      return await axios.put(`${API_URL}/users/password`, passwordData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (error) {
+      console.error('Lỗi đổi mật khẩu:', error);
+      throw error;
+    }
+  },
+
+  // Đăng xuất
+  logout: () => {
+    authToken.removeToken();
   },
 };
 

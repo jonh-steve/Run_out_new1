@@ -9,7 +9,7 @@ import { clearCart } from '../../store/slices/cartSlice';
 import { getOrderById } from '../../store/slices/orderSlice';
 import paymentService from '../../services/paymentService';
 import MainLayout from '../../components/layout/MainLayout';
-import Button from '../../components/common/Button/Button';
+import Button from '../../components/common/Button';
 import LoadingSpinner from '../../components/common/LoadingSpiner';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 

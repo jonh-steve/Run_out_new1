@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Button } from '../../common/Button/Button';
-import { Input } from '../../common/Input/Input';
+import { Button } from '../../common/Button';
+import { Input } from '../../common/Input';
 
 const schema = yup.object({
   rating: yup.number().required('Vui lòng chọn số sao').min(1, 'Vui lòng chọn số sao'),

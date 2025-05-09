@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../../../store/slices/cartSlice';
-import { Button } from '../../common/Button/Button';
+import { Button } from '../../common/Button';
 
 const AddToCart = ({ product }) => {
   const dispatch = useDispatch();

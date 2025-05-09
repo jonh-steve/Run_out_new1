@@ -2,7 +2,7 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import { updateCartItem, removeFromCart } from '../../../store/slices/cartSlice';
-import { Button } from '../../common/Button/Button';
+import { Button } from '../../common/Button';
 import { formatPrice } from '../../../utils/formatters';
 
 const CartItem = ({ item }) => {

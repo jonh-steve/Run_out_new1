@@ -3,8 +3,8 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Button from '../../../components/common/Button/Button';
-import Card from '../../../components/common/Card/Card';
+import Button from '../../common/Button';
+import Card from '../../common/Card';
 import { formatPrice } from '../../../utils/formatters';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../../../store/slices/cartSlice';

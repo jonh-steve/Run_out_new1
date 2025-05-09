@@ -25,8 +25,7 @@ const useLocalStorage = (key, initialValue) => {
   const setValue = (value) => {
     try {
       // Cho phép value là một function
-      const valueToStore =
-        value instanceof Function ? value(storedValue) : value;
+      const valueToStore = value instanceof Function ? value(storedValue) : value;
       // Lưu state
       setStoredValue(valueToStore);
       // Lưu vào localStorage

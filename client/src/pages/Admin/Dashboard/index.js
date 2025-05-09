@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import {
   fetchDashboardStats,
   fetchRecentOrders,
-  resetDashboardErrors,
+  clearError,
 } from '../../../store/slices/adminSlice';
 import {
   DashboardStats,
@@ -22,24 +22,24 @@ const TIME_PERIODS = {
   MONTH: 'month',
   YEAR: 'year',
 };
-
+import { unwrapResult } from '@reduxjs/toolkit';
 const AdminDashboardPage = () => {
   const dispatch = useAppDispatch();
   const { stats, recentOrders, isLoading, error } = useAppSelector((state) => state.admin);
 
   const [timePeriod, setTimePeriod] = useState(TIME_PERIODS.WEEK);
 
-  const fetchDashboardData = useCallback(() => {
-    dispatch(fetchDashboardStats(timePeriod));
-    dispatch(fetchRecentOrders(timePeriod));
+  const fetchDashboardData = useCallback(async () => {
+    const result = await dispatch(fetchDashboardStats(timePeriod));
+    const data = unwrapResult(result);
+    // Sử dụng data
   }, [dispatch, timePeriod]);
-
   useEffect(() => {
     fetchDashboardData();
 
     // Cleanup function để reset errors khi unmount
     return () => {
-      dispatch(resetDashboardErrors());
+      dispatch(clearError());
     };
   }, [fetchDashboardData, dispatch]);
 
@@ -52,7 +52,7 @@ const AdminDashboardPage = () => {
   };
 
   const handleDismissError = () => {
-    dispatch(resetDashboardErrors());
+    dispatch(clearError());
   };
 
   return (

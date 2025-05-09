@@ -1,7 +1,7 @@
 // src/components/feature/Admin/OrderManager/OrderDetail.js
 import React from 'react';
 import { formatDate, formatPrice } from '../../../../utils/formatters';
-import { Button } from '../../../common/Button/Button';
+import { Button } from '../../../common/Button';
 
 const OrderStatusBadge = ({ status }) => {
   const statusConfig = {

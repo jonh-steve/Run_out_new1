@@ -5,7 +5,7 @@
 
 # Thư mục node_modules (chứa các dependencies)
 node_modules
-
+*node_modules
 # Thư mục build/dist (chứa code đã được biên dịch)
 dist
 build

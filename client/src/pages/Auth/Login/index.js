@@ -3,8 +3,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, clearError, selectAuth } from '../../../store/slices/authSlice';
 import { ROUTES } from '../../../routes/paths';
-import Button from '../../../components/common/Button/Button';
-import Input from '../../../components/common/Input/Input';
+import Button from '../../../components/common/Button';
+import Input from '../../../components/common/Input';
 import useForm from '../../../hooks/useForm';
 
 const Login = () => {

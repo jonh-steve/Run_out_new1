@@ -17,7 +17,7 @@ const useOutsideClick = (callback) => {
 
     // Thêm event listener
     document.addEventListener('mousedown', handleClickOutside);
-    
+
     // Cleanup
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);

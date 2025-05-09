@@ -16,22 +16,7 @@ server/
         │   ├── requestLogger.js        # Middleware ghi log request/response
         │   └── rateLimiter.js          # Giới hạn số request trong một khoảng thời gian
         │
-        ├── types/                 # Type definitions và interfaces
-        │   ├── express.d.ts            # Type definitions mở rộng cho Express
-        │   ├── auth.types.js           # Types liên quan đến authentication
-        │   ├── product.types.js        # Types liên quan đến product
-        │   ├── order.types.js          # Types liên quan đến order
-        │   └── common.types.js         # Types dùng chung
         │
-        ├── utils/                 # Các utility functions dùng trong nhiều modules
-        │   ├── apiFeatures.js          # Xử lý filtering, sorting, pagination
-        │   ├── catchAsync.js           # Wrapper function để xử lý async errors
-        │   ├── responseHandler.js      # Format response trả về từ API
-        │   ├── validatorUtils.js       # Các helper functions cho validation
-        │   ├── dateUtils.js            # Các utility function xử lý datetime
-        │   ├── fileUtils.js            # Xử lý file upload, manipulation
-        │   ├── securityUtils.js        # Các utility cho hash, token, encrypt
-        │   └── formatters.js           # Các hàm format data (currency, phone, etc.)
         │
         └── validators/            # Định nghĩa validation schema và rules
             ├── authValidator.js        # Validation rules cho auth requests

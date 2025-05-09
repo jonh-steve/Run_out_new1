@@ -1,17 +1,13 @@
 /**
- * Utility wrapper để xử lý lỗi async cho controllers
- * @author Steve
- * @project RunOut-Biliard
- */
-
-/**
- * Bọc hàm async để xử lý lỗi mà không cần try-catch trong mỗi controller
- * @param {Function} fn - Hàm async cần được bọc
- * @returns {Function} - Middleware function với xử lý lỗi
+ * Wrapper function để bắt lỗi trong các hàm async
+ * Tránh việc phải sử dụng try/catch nhiều lần
+ *
+ * @param {Function} fn - Async function cần bọc
+ * @returns {Function} Middleware function với lỗi đã được xử lý
  */
 const catchAsync = (fn) => {
   return (req, res, next) => {
-    fn(req, res, next).catch(next);
+    Promise.resolve(fn(req, res, next)).catch(next);
   };
 };
 

@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import Button from '../../common/Button/Button';
+import Button from '../../common/Button';
 import ShippingInfo from './ShippingInfo';
 import { Radio } from '../../common';
 

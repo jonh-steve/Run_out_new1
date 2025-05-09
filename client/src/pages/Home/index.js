@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 import { fetchProducts, fetchCategories } from '../../store/slices/productSlice';
 import { ROUTES } from '../../routes/paths';
 import LoadingSpinner from '../../components/common/LoadingSpiner';
-import Card from '../../components/common/Card/Card';
-import Button from '../../components/common/Button/Button';
+import Card from '../../components/common/Card';
+import Button from '../../components/common/Button';
 import { formatPrice } from '../../utils/formatters';
 
 const HomePage = () => {
@@ -19,7 +19,7 @@ const HomePage = () => {
     // Lấy danh mục
     dispatch(fetchCategories());
   }, [dispatch]);
-
+  u
   if (loading && products.length === 0) {
     return <LoadingSpinner fullScreen />;
   }

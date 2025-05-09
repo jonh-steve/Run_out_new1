@@ -1,6 +1,6 @@
 // src/components/feature/Checkout/ShippingInfo.js
 import React from 'react';
-import { Input } from '../../common/Input/Input';
+import { Input } from '../../common/Input';
 
 const ShippingInfo = ({ register, errors }) => {
   return (
